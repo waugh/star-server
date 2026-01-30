@@ -239,7 +239,7 @@ async function castVoteController(req: IElectionRequest, res: Response, next: Ne
 
     let event = await makeBallotEvent(req, targetElection, req.body.ballot, 'submitted_via_browser')
 
-    event.userEmail = event.roll?.email ?? AccountService.extractUserFromRequest(req).email ?? req.body.receiptEmail;
+    event.userEmail = event.roll?.email ?? AccountService.extractUserFromRequest(req)?.email ?? req.body.receiptEmail;
 
     await (await EventQueue).publish(castVoteEventQueue, event);
 
