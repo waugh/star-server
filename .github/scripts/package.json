@@ -2,17 +2,17 @@
   "name": "github-scripts",
   "version": "1.0.0",
   "description": "GitHub Actions scripts for repository automation",
-  "main": "dist/issue-management/check-stale-issues.js",
+  "main": "dist/issue-management/main.js",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
 
-    "issue-mgmt:start": "node dist/issue-management/check-stale-issues.js",
+    "issue-mgmt:start": "node dist/issue-management/main.js",
     "issue-mgmt:simulate": "node dist/issue-management/simulate-stale-issues.js",
 
     "issue-mgmt:test:create": "node -r dotenv/config dist/issue-management/create-test-issues.js dotenv_config_path=.env.test",
-    "issue-mgmt:test:run": "node -r dotenv/config dist/issue-management/check-stale-issues.js dotenv_config_path=.env.test",
+    "issue-mgmt:test:run": "node -r dotenv/config dist/issue-management/main.js dotenv_config_path=.env.test",
     "issue-mgmt:test:cleanup": "node -r dotenv/config dist/issue-management/cleanup-test-issues.js dotenv_config_path=.env.test",
     "issue-mgmt:test:workflow": "node -r dotenv/config dist/issue-management/test-workflow.js dotenv_config_path=.env.test",
     "issue-mgmt:test:github": "node -r dotenv/config dist/issue-management/test-github-workflow.js dotenv_config_path=.env.test"
