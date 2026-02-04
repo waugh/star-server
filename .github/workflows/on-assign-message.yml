@@ -17,7 +17,14 @@ jobs:
         with:
           script: |
             const assignee = context.payload.assignee.login;
+            const assigner = context.payload.sender.login;
             const issueNumber = context.payload.issue.number;
+            
+            // Only post message if user self-assigned (assignee === assigner)
+            if (assignee !== assigner) {
+              console.log(`Skipping: Issue was assigned by ${assigner} to ${assignee} (not self-assigned)`);
+              return;
+            }
             
             const message = `👋 Hi @${assignee}! Thank you for taking on this issue!
 
