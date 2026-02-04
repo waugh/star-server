@@ -28,8 +28,8 @@ export class IssueAuditor {
     try {
       console.log(`Fetching project information for project #${this.config.projectNumber}...`);
       
-      // Query to get project ID and status field
-      const query = `
+      // Try as organization first
+      let query = `
         query($owner: String!, $number: Int!) {
           organization(login: $owner) {
             projectV2(number: $number) {
@@ -51,23 +51,62 @@ export class IssueAuditor {
         }
       `;
 
-      const response: any = await this.octokit.graphql(query, {
-        owner: this.config.owner,
-        number: this.config.projectNumber,
-      });
-
-      this.projectId = response.organization.projectV2.id;
+      let response: any;
+      try {
+        response = await this.octokit.graphql(query, {
+          owner: this.config.owner,
+          number: this.config.projectNumber,
+        });
+        this.projectId = response.organization.projectV2.id;
+      } catch (error) {
+        // Try as user
+        query = `
+          query($owner: String!, $number: Int!) {
+            user(login: $owner) {
+              projectV2(number: $number) {
+                id
+                fields(first: 20) {
+                  nodes {
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `;
+        
+        response = await this.octokit.graphql(query, {
+          owner: this.config.owner,
+          number: this.config.projectNumber,
+        });
+        this.projectId = response.user.projectV2.id;
+      }
       
-      // Find the Status field
-      const fields = response.organization.projectV2.fields.nodes;
-      const statusField = fields.find((f: any) => f.name === 'Status');
+      // Find the Status field (prefer Test Status for testing, then Status)
+      const projectData = response.organization?.projectV2 || response.user?.projectV2;
+      const fields = projectData.fields.nodes;
+      
+      // Try Test Status first (for testing), then fall back to Status
+      let statusField = fields.find((f: any) => f.name === 'Test Status');
+      if (!statusField) {
+        statusField = fields.find((f: any) => f.name === 'Status');
+      }
       
       if (statusField) {
         this.statusFieldId = statusField.id;
+        // Store both original name and lowercase for flexible lookup
         statusField.options.forEach((opt: any) => {
-          this.statusOptions.set(opt.name.toLowerCase(), opt.id);
+          this.statusOptions.set(opt.name, opt.id); // Original case
+          this.statusOptions.set(opt.name.toLowerCase(), opt.id); // Lowercase
         });
-        console.log(`✅ Found Status field with options: ${Array.from(this.statusOptions.keys()).join(', ')}`);
+        console.log(`✅ Found ${statusField.name} field with options: ${statusField.options.map((o: any) => o.name).join(', ')}`);
       } else {
         console.log('⚠️  Status field not found in project');
       }
@@ -86,16 +125,30 @@ export class IssueAuditor {
     }
 
     try {
+      // Get all items and find the one matching our issue
       const query = `
-        query($projectId: ID!, $issueNodeId: ID!) {
+        query($projectId: ID!) {
           node(id: $projectId) {
             ... on ProjectV2 {
-              items(first: 1, filterBy: {contentId: $issueNodeId}) {
+              items(first: 100) {
                 nodes {
                   id
-                  fieldValueByName(name: "Status") {
-                    ... on ProjectV2ItemFieldSingleSelectValue {
-                      name
+                  content {
+                    ... on Issue {
+                      id
+                      number
+                    }
+                  }
+                  fieldValues(first: 10) {
+                    nodes {
+                      ... on ProjectV2ItemFieldSingleSelectValue {
+                        name
+                        field {
+                          ... on ProjectV2SingleSelectField {
+                            name
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -107,14 +160,31 @@ export class IssueAuditor {
 
       const response: any = await this.octokit.graphql(query, {
         projectId: this.projectId,
-        issueNodeId: issue.node_id,
       });
 
       const items = response.node.items.nodes;
-      if (items.length > 0) {
-        const item = items[0];
-        const statusValue = item.fieldValueByName?.name || null;
-        return { itemId: item.id, statusValue };
+      
+      // Find the item that matches our issue
+      const matchingItem = items.find((item: any) => item.content?.id === issue.node_id);
+      
+      if (matchingItem) {
+        // Find the status field value (either "Status" or "Test Status")
+        const statusFieldValue = matchingItem.fieldValues.nodes.find((fv: any) => 
+          fv.field?.name === 'Status' || fv.field?.name === 'Test Status'
+        );
+        
+        if (statusFieldValue) {
+          return {
+            itemId: matchingItem.id,
+            statusValue: statusFieldValue.name,
+          };
+        }
+        
+        // Item exists but no status set
+        return {
+          itemId: matchingItem.id,
+          statusValue: null,
+        };
       }
     } catch (error) {
       console.error(`  ⚠️  Error getting project status for issue #${issue.number}:`, error);
@@ -135,9 +205,15 @@ export class IssueAuditor {
       return;
     }
 
-    const statusOptionId = this.statusOptions.get(newStatus.toLowerCase());
+    // Try exact match first, then case-insensitive
+    let statusOptionId = this.statusOptions.get(newStatus);
+    if (!statusOptionId) {
+      statusOptionId = this.statusOptions.get(newStatus.toLowerCase());
+    }
+    
     if (!statusOptionId) {
       console.log(`  ⚠️  Status option "${newStatus}" not found`);
+      console.log(`     Available options: ${Array.from(this.statusOptions.keys()).join(', ')}`);
       return;
     }
 
