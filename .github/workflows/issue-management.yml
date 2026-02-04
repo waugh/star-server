@@ -77,11 +77,12 @@ jobs:
           # - Manual trigger: use input values
           # - Scheduled (cron): production mode with hardcoded defaults below
           # To change production thresholds, edit the '1' and '2' values on lines 73-74
+          # To change project number, edit the '3' value on line 75
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
           TIME_UNIT: ${{ github.event_name == 'workflow_dispatch' && inputs.time_unit || 'weeks' }}
           WARNING_WEEKS: ${{ github.event_name == 'workflow_dispatch' && inputs.warning_weeks || '1' }}
           UNASSIGN_WEEKS: ${{ github.event_name == 'workflow_dispatch' && inputs.unassign_weeks || '2' }}
-          PROJECT_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.project_number || '' }}
+          PROJECT_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.project_number || '3' }}
         run: |
           cd .github/scripts
           node dist/issue-management/main.js
@@ -93,7 +94,7 @@ jobs:
           TIME_UNIT: ${{ github.event_name == 'workflow_dispatch' && inputs.time_unit || 'weeks' }}
           WARNING_WEEKS: ${{ github.event_name == 'workflow_dispatch' && inputs.warning_weeks || '1' }}
           UNASSIGN_WEEKS: ${{ github.event_name == 'workflow_dispatch' && inputs.unassign_weeks || '2' }}
-          PROJECT_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.project_number || '' }}
+          PROJECT_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.project_number || '3' }}
         run: |
           echo "## Issue Management Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
