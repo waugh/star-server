@@ -2,7 +2,7 @@ import { InternalServerError } from "@curveball/http-errors";
 import Logger from '../Services/Logging/Logger';
 import { randomUUID } from "crypto";
 import { Request, Response, NextFunction } from 'express';
-import { uploadBufferToBlob } from '../Services/azureBlobService';
+import { uploadBufferToBlob } from '../Services/Blob/BlobService';
 
 const multer = require("multer");
 
