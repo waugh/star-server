@@ -1,39 +1,37 @@
 let blobServiceClient: any = null;
 
-function getBlobServiceClient(): any {
-  if (!blobServiceClient) {
-    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || '';
-    if (!connectionString) {
-      throw new Error('AZURE_STORAGE_CONNECTION_STRING is not set. Set it in your environment or use the mock BlobService in tests.');
+export default class BlobService {
+    client; 
+
+    constructor() {
+        const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || '';
+        if (!connectionString) {
+            throw new Error('AZURE_STORAGE_CONNECTION_STRING is not set. Set it in your environment or use the mock BlobService in tests.');
+        }
+        // require lazily to avoid loading the azure sdk during build/generate steps
+        const { BlobServiceClient } = require('@azure/storage-blob');
+        this.client = BlobServiceClient.fromConnectionString(connectionString);
     }
-    // require lazily to avoid loading the azure sdk during build/generate steps
-    const { BlobServiceClient } = require('@azure/storage-blob');
-    blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-  }
-  return blobServiceClient;
+
+    uploadBufferToBlob = async (
+        containerName: string,
+        blobName: string,
+        buffer: Buffer,
+        contentType?: string,
+        onProgress?: (progress: any) => void,
+    ): Promise<string> => {
+        const containerClient = this.client.getContainerClient(containerName);
+        await containerClient.createIfNotExists();
+
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+        await blockBlobClient.uploadData(buffer, {
+            onProgress,
+            blobHTTPHeaders: {
+            blobContentType: contentType || 'application/octet-stream',
+            },
+        });
+
+        return blockBlobClient.url;
+    }
 }
-
-export async function uploadBufferToBlob(
-  containerName: string,
-  blobName: string,
-  buffer: Buffer,
-  contentType?: string,
-  onProgress?: (progress: any) => void,
-): Promise<string> {
-  const client = getBlobServiceClient();
-  const containerClient = client.getContainerClient(containerName);
-  await containerClient.createIfNotExists();
-
-  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-  await blockBlobClient.uploadData(buffer, {
-    onProgress,
-    blobHTTPHeaders: {
-      blobContentType: contentType || 'application/octet-stream',
-    },
-  });
-
-  return blockBlobClient.url;
-}
-
-export default { uploadBufferToBlob };

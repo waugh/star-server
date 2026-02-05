@@ -25,9 +25,8 @@ var _electionsDb: ElectionsDB;
 var _electionRollDb: ElectionRollDB;
 var _castVoteStore: CastVoteStore;
 var _emailService: EmailService
+var _blobService: BlobService
 var _eventQueue: IEventQueue;
-
-var _emailService: EmailService;
 var _accountService: AccountService;
 var _globalData: GlobalData;
 
@@ -141,8 +140,11 @@ function emailService(): EmailService {
     return _emailService;
 }
 
-function blobService(): typeof BlobService {
-    return BlobService as any;
+function blobService(): BlobService {
+    if (_blobService == null) {
+        _blobService = new BlobService();
+    }
+    return _blobService ;
 }
 
 function accountService(): AccountService {

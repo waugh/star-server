@@ -2,11 +2,13 @@ import { InternalServerError } from "@curveball/http-errors";
 import Logger from '../Services/Logging/Logger';
 import { randomUUID } from "crypto";
 import { Request, Response, NextFunction } from 'express';
-import { uploadBufferToBlob } from '../Services/Blob/BlobService';
+import ServiceLocator from "../ServiceLocator";
 
 const multer = require("multer");
 
 const storage = multer.memoryStorage();
+
+const BlobService = ServiceLocator.blobService();
 
 const CONTAINER_NAME = 'candidate-photos';
 
@@ -33,7 +35,7 @@ const uploadImageController = async (req: ImageRequest, res: Response, next: Nex
     const file = req.file
     const blobName = `${randomUUID()}.jpg`;
     try {
-      const photo_filename = await uploadBufferToBlob(
+      const photo_filename = await BlobService.uploadBufferToBlob(
         CONTAINER_NAME,
         blobName,
         file.buffer,
