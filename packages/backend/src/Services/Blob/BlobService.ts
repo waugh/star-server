@@ -1,8 +1,17 @@
-import { BlobServiceClient } from "@azure/storage-blob";
+let blobServiceClient: any = null;
 
-const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || '';
-
-const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+function getBlobServiceClient(): any {
+  if (!blobServiceClient) {
+    const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING || '';
+    if (!connectionString) {
+      throw new Error('AZURE_STORAGE_CONNECTION_STRING is not set. Set it in your environment or use the mock BlobService in tests.');
+    }
+    // require lazily to avoid loading the azure sdk during build/generate steps
+    const { BlobServiceClient } = require('@azure/storage-blob');
+    blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+  }
+  return blobServiceClient;
+}
 
 export async function uploadBufferToBlob(
   containerName: string,
@@ -11,7 +20,8 @@ export async function uploadBufferToBlob(
   contentType?: string,
   onProgress?: (progress: any) => void,
 ): Promise<string> {
-  const containerClient = blobServiceClient.getContainerClient(containerName);
+  const client = getBlobServiceClient();
+  const containerClient = client.getContainerClient(containerName);
   await containerClient.createIfNotExists();
 
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
