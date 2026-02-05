@@ -4,6 +4,7 @@ import ElectionsDB from "./Models/Elections";
 import ElectionRollDB from "./Models/ElectionRolls";
 import CastVoteStore from "./Models/CastVoteStore";
 import EmailService from "./Services/Email/EmailService";
+import BlobService from "./Services/Blob/BlobService";
 import { IBallotStore } from "./Models/IBallotStore";
 import { IEventQueue } from "./Services/EventQueue/IEventQueue";
 import PGBossEventQueue from "./Services/EventQueue/PGBossEventQueue";
@@ -24,9 +25,8 @@ var _electionsDb: ElectionsDB;
 var _electionRollDb: ElectionRollDB;
 var _castVoteStore: CastVoteStore;
 var _emailService: EmailService
+var _blobService: BlobService
 var _eventQueue: IEventQueue;
-
-var _emailService: EmailService;
 var _accountService: AccountService;
 var _globalData: GlobalData;
 
@@ -140,6 +140,13 @@ function emailService(): EmailService {
     return _emailService;
 }
 
+function blobService(): BlobService {
+    if (_blobService == null) {
+        _blobService = new BlobService();
+    }
+    return _blobService ;
+}
+
 function accountService(): AccountService {
     if (_accountService == null) {
         _accountService = new AccountService();
@@ -154,4 +161,4 @@ function globalData(): GlobalData {
     return _globalData;
 }
 
-export default { ballotsDb, electionsDb, electionRollDb, emailService, accountService, castVoteStore, globalData, eventQueue, database };
+export default { ballotsDb, electionsDb, electionRollDb, emailService, accountService, castVoteStore, globalData, eventQueue, database, blobService };
