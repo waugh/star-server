@@ -12,6 +12,10 @@ import { useCookie } from "~/hooks/useCookie";
 const templateMappers = {
     'demo': (election: NewElection): NewElection => ({
         ...election,
+        settings: {
+            ...election.settings,
+            voter_authentication: {}
+        }
     }),
     'unlisted': (election: NewElection): NewElection => ({
         ...election,
