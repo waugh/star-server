@@ -7,29 +7,10 @@ parent: BetterVoting Documentation
 
 # Frequently Asked Questions
 
-- [Question 1?](#question-1)
-- [Question 2?](#question-2)
-- [Question 3?](#question-3)
-- [Question 4?](#question-4)
-- [Question 5?](#question-5)
+- [How do you run races with "None of the Above"?](#how-do-you-run-races-with-none-of-the-above)
 
-## Question 1?
+## How do you run races with "None of the Above"?
 
-Answer Text 1
+Some elections require including "None of the Above" (NOTA) as an option. On BetterVoting.com if you'd like to include NOTA you could simply add "None of the Above" as a candidate. If NOTA wins then the election may need to be repeated.  f NOTA got a majority but didn't win then the election would proceed according to bylaws.
 
-## Question 2?
-
-Answer Text 2
-
-## Question 3?
-
-Answer Text 3
-
-## Question 4?
-
-Answer Text 4
-
-## Question 5?
-
-Answer Text 5
-
+Most voting methods on BetterVoting allow for supporting multiple candidates, this would include NOTA. For example, on an Approval election a voter could select both a candidate and "None of the Above". This is in line with Equal Vote's principal that your vote should always be able to make a difference even if your favorite can't win. 
