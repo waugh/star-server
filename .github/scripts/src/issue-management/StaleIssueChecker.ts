@@ -37,22 +37,33 @@ export class StaleIssueChecker {
    * Format age display based on time unit
    */
   private formatAge(timeSinceUpdate: number): string {
+    let value: string;
+    let unit: string;
+
     switch (this.config.timeUnit) {
       case 'seconds':
-        return `${timeSinceUpdate.toFixed(1)} seconds ago`;
+        value = timeSinceUpdate.toFixed(1);
+        unit = 'seconds';
+        break;
       case 'minutes':
-        return `${timeSinceUpdate.toFixed(2)} minutes ago`;
+        value = timeSinceUpdate.toFixed(2);
+        unit = 'minutes';
+        break;
       case 'weeks':
       default:
         if (timeSinceUpdate < 0.01) {
-          const minutes = Math.round(timeSinceUpdate * 7 * 24 * 60);
-          return `${minutes} minute(s) ago`;
+          value = String(Math.round(timeSinceUpdate * 7 * 24 * 60));
+          unit = 'minute(s)';
+        } else if (timeSinceUpdate < 1) {
+          value = timeSinceUpdate.toFixed(4);
+          unit = 'weeks';
+        } else {
+          value = String(Math.round(timeSinceUpdate));
+          unit = 'weeks';
         }
-        if (timeSinceUpdate < 1) {
-          return `${timeSinceUpdate.toFixed(4)} weeks ago`;
-        }
-        return `${Math.round(timeSinceUpdate)} weeks ago`;
     }
+
+    return `${value} ${unit} ago`;
   }
 
   /**
