@@ -28,8 +28,8 @@ export interface ProjectField {
 }
 
 export interface ProjectItemStatus {
-  itemId: string | null;
-  statusValue: string | null;
+  itemId?: string;
+  statusValue?: string;
 }
 
 export interface Config {

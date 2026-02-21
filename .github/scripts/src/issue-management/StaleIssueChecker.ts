@@ -37,20 +37,21 @@ export class StaleIssueChecker {
    * Format age display based on time unit
    */
   private formatAge(timeSinceUpdate: number): string {
-    if (this.config.timeUnit === 'seconds') {
-      return `${timeSinceUpdate.toFixed(1)} seconds ago`;
-    } else if (this.config.timeUnit === 'minutes') {
-      return `${timeSinceUpdate.toFixed(2)} minutes ago`;
-    } else {
-      // weeks
-      if (timeSinceUpdate < 0.01) {
-        const minutes = Math.round(timeSinceUpdate * 7 * 24 * 60);
-        return `${minutes} minute(s) ago`;
-      } else if (timeSinceUpdate < 1) {
-        return `${timeSinceUpdate.toFixed(4)} weeks ago`;
-      } else {
+    switch (this.config.timeUnit) {
+      case 'seconds':
+        return `${timeSinceUpdate.toFixed(1)} seconds ago`;
+      case 'minutes':
+        return `${timeSinceUpdate.toFixed(2)} minutes ago`;
+      case 'weeks':
+      default:
+        if (timeSinceUpdate < 0.01) {
+          const minutes = Math.round(timeSinceUpdate * 7 * 24 * 60);
+          return `${minutes} minute(s) ago`;
+        }
+        if (timeSinceUpdate < 1) {
+          return `${timeSinceUpdate.toFixed(4)} weeks ago`;
+        }
         return `${Math.round(timeSinceUpdate)} weeks ago`;
-      }
     }
   }
 
@@ -106,13 +107,12 @@ export class StaleIssueChecker {
    */
   private async postWarningComment(issue: IssueData): Promise<void> {
     const assigneeLogins = issue.assignees.map(a => `@${a.login}`).join(' ');
-    
-    const warningMessage = `
-🤖 **Check-In Reminder** 
 
-Hi ${assigneeLogins}! 
+    const warningMessage = `🤖 **Check-In Reminder**
 
-This issue hasn't had activity in the past ${this.config.warningWeeks} ${this.config.timeUnit}. 
+Hi ${assigneeLogins}!
+
+This issue hasn't had activity in the past ${this.config.warningWeeks} ${this.config.timeUnit}.
 
 Please add a comment using the below template (even if you have a pull request).
 
@@ -122,12 +122,11 @@ Please add a comment using the below template (even if you have a pull request).
 4. ETA: "When do you expect this issue to be completed?"
 5. Pictures (optional): "Add any pictures of the visual changes made to the site so far."
 
-If you need help, please request for assistance on the #bettervoting slack channel. 
+If you need help, please request for assistance on the #bettervoting slack channel.
 
 **This issue will be marked as inactive in ${this.config.unassignWeeks - this.config.warningWeeks} ${this.config.timeUnit}** unless a comment is added.
 
-<!-- AUTO-UNASSIGN-WARNING -->
-    `.trim();
+<!-- AUTO-UNASSIGN-WARNING -->`;
 
     if (this.config.dryRun) {
       console.log(`  [DRY RUN] Would post warning comment on issue #${issue.number}`);

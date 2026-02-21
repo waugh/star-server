@@ -42,12 +42,12 @@ export class IssueManager {
       issues.push(...response.data.map(issue => ({
         number: issue.number,
         title: issue.title,
-        assignees: issue.assignees || [],
+        assignees: issue.assignees ?? [],
         updated_at: issue.updated_at,
         created_at: issue.created_at,
         html_url: issue.html_url,
-        labels: (issue.labels || []).map(label => ({
-          name: typeof label === 'string' ? label : label.name || ''
+        labels: (issue.labels ?? []).map(label => ({
+          name: typeof label === 'string' ? label : label.name ?? ''
         })),
         node_id: issue.node_id,
       })));

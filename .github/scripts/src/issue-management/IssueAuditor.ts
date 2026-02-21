@@ -7,8 +7,8 @@ import { IssueData, Config, ProjectItemStatus } from './main';
 export class IssueAuditor {
   private octokit: Octokit;
   private config: Config;
-  private projectId: string | null = null;
-  private statusFieldId: string | null = null;
+  private projectId?: string;
+  private statusFieldId?: string;
   private statusOptions: Map<string, string> = new Map();
 
   constructor(octokit: Octokit, config: Config) {
@@ -90,7 +90,7 @@ export class IssueAuditor {
       }
       
       // Find the Status field (prefer Test Status for testing, then Status)
-      const projectData = response.organization?.projectV2 || response.user?.projectV2;
+      const projectData = response.organization?.projectV2 ?? response.user?.projectV2;
       const fields = projectData.fields.nodes;
       
       // Try Test Status first (for testing), then fall back to Status
@@ -112,7 +112,7 @@ export class IssueAuditor {
       }
     } catch (error) {
       console.error('❌ Error initializing project info:', error);
-      this.projectId = null;
+      this.projectId = undefined;
     }
   }
 
@@ -121,7 +121,7 @@ export class IssueAuditor {
    */
   private async getIssueProjectStatus(issue: IssueData): Promise<ProjectItemStatus> {
     if (!this.projectId) {
-      return { itemId: null, statusValue: null };
+      return {};
     }
 
     try {
@@ -183,14 +183,13 @@ export class IssueAuditor {
         // Item exists but no status set
         return {
           itemId: matchingItem.id,
-          statusValue: null,
         };
       }
     } catch (error) {
       console.error(`  ⚠️  Error getting project status for issue #${issue.number}:`, error);
     }
 
-    return { itemId: null, statusValue: null };
+    return {};
   }
 
   /**

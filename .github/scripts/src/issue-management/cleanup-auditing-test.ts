@@ -59,8 +59,9 @@ class AuditingTestCleanup {
       });
       
       console.log(`  ✅ Deleted project #${projectNumber}`);
-    } catch (error: any) {
-      console.error(`  ❌ Error deleting project:`, error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`  ❌ Error deleting project:`, message);
     }
   }
 
@@ -87,8 +88,9 @@ class AuditingTestCleanup {
         
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 200));
-      } catch (error: any) {
-        console.error(`  ❌ Error closing issue #${issueNumber}:`, error.message);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`  ❌ Error closing issue #${issueNumber}:`, message);
         errors++;
       }
     }
