@@ -50,6 +50,16 @@ const truncName = (name: string, maxSize: number) => {
   return name.slice(0, maxSize - 3).concat("...");
 };
 
+export const escapeHtml = (unsafe: string) => {
+  if (!unsafe) return unsafe;
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 interface TagObject{
   [key: string]: string
 }
@@ -76,8 +86,8 @@ export async function getMetaTags(req: any) : Promise<TagObject>  {
   let n_cropped = (len > 5) ? 0 : (5-len);
 
   return {
-      __META_TITLE__: election?.title ?? 'BetterVoting | Create elections & polls that don\'t spoil the vote',
-      __META_DESCRIPTION__: election?.description ?? "Create secure elections with voting methods that don't spoil the vote.",
+      __META_TITLE__: escapeHtml(election?.title ?? 'BetterVoting | Create elections & polls that don\'t spoil the vote'),
+      __META_DESCRIPTION__: escapeHtml(election?.description ?? "Create secure elections with voting methods that don't spoil the vote."),
       __META_IMAGE__: election == null ?
         'https://assets.nationbuilder.com/unifiedprimary/pages/1470/attachments/original/1702692040/Screenshot_2023-12-15_at_6.00.24_PM.png?1702692040' :
         // https://imagekit.io/docs/transformations#position-of-layer
