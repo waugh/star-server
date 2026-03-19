@@ -20,65 +20,70 @@ function extractBaseMessageId(sg_message_id: string): string {
 }
 
 export const sendGridWebhookController = async (req: IRequest, res: Response) => {
-    const signature = String(req.headers['x-twilio-email-event-webhook-signature'] ?? 'missing');
-    const timestamp = String(req.headers['x-twilio-email-event-webhook-timestamp'] ?? 'missing');
-    Logger.info(req, `SendGridWebhook signature=${signature} timestamp=${timestamp}`);
-
-    const rawBody = req.body as Buffer;
-
-    let events: SendGridEvent[];
     try {
-        events = JSON.parse(rawBody.toString('utf8'));
-    } catch {
-        Logger.warn(req, `SendGridWebhook: could not parse body`);
-        res.status(400).send('Bad request');
-        return;
-    }
+        const signature = String(req.headers['x-twilio-email-event-webhook-signature'] ?? 'missing');
+        const timestamp = String(req.headers['x-twilio-email-event-webhook-timestamp'] ?? 'missing');
+        Logger.info(req, `SendGridWebhook signature=${signature} timestamp=${timestamp}`);
 
-    Logger.info(req, `SendGridWebhook: ${events.length} event(s)`);
+        const rawBody = req.body as Buffer;
 
-    // This is a PUBLIC KEY from sendgrid.  I can't see any reason we should ever have to change it.
-    // It is safe to have public in the repo.
-    const verificationKey = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE5qOZpcaMe4gniCO5t9fSMq0MtkKvVL0qoqUX6Al/sKQK4OLhACy2WJzwYEm6MJm6djEk8GpTkjoTP9hu5ogSOQ==';
-
-    const publicKey = crypto.createPublicKey({
-        key: Buffer.from(verificationKey, 'base64'),
-        format: 'der',
-        type: 'spki',
-    });
-    const payload = timestamp + rawBody.toString('utf8');
-    const valid = crypto.verify(null, Buffer.from(payload), publicKey, Buffer.from(signature, 'base64'));
-
-    if (!valid) {
-        Logger.warn(req, `SendGridWebhook: invalid signature`);
-        res.status(403).send('Invalid signature');
-        return;
-    }
-
-    for (const event of events) {
-        if (!event.sg_message_id || !event.event) continue;
-
-        const message_id = extractBaseMessageId(event.sg_message_id);
+        let events: SendGridEvent[];
         try {
-            const sentRow = await EmailEventsDB.getByMessageId(message_id, req);
-            if (!sentRow) {
-                Logger.warn(req, `SendGridWebhook: no sent row for message_id=${message_id}`);
-                continue;
-            }
-
-            const { email, unique_args, sg_message_id, event: event_type, timestamp: event_ts, ...rest } = event;
-            await EmailEventsDB.insert({
-                message_id,
-                election_id: sentRow.election_id,
-                voter_id: sentRow.voter_id,
-                event_type: event_type!,
-                event_timestamp: event_ts ?? Date.now(),
-                details: Object.keys(rest).length > 0 ? rest : undefined,
-            }, req);
-        } catch (err: any) {
-            Logger.error(req, `SendGridWebhook: failed to store event for message_id=${message_id}: ${err.message}`);
+            events = JSON.parse(rawBody.toString('utf8'));
+        } catch {
+            Logger.warn(req, `SendGridWebhook: could not parse body`);
+            res.status(400).send('Bad request');
+            return;
         }
-    }
 
-    res.status(200).send('OK');
+        Logger.info(req, `SendGridWebhook: ${events.length} event(s)`);
+
+        // This is a PUBLIC KEY from sendgrid.  I can't see any reason we should ever have to change it.
+        // It is safe to have public in the repo.
+        const verificationKey = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE5qOZpcaMe4gniCO5t9fSMq0MtkKvVL0qoqUX6Al/sKQK4OLhACy2WJzwYEm6MJm6djEk8GpTkjoTP9hu5ogSOQ==';
+
+        const publicKey = crypto.createPublicKey({
+            key: Buffer.from(verificationKey, 'base64'),
+            format: 'der',
+            type: 'spki',
+        });
+        const payload = timestamp + rawBody.toString('utf8');
+        const valid = crypto.verify(null, Buffer.from(payload), publicKey, Buffer.from(signature, 'base64'));
+
+        if (!valid) {
+            Logger.warn(req, `SendGridWebhook: invalid signature`);
+            res.status(403).send('Invalid signature');
+            return;
+        }
+
+        for (const event of events) {
+            if (!event.sg_message_id || !event.event) continue;
+
+            const message_id = extractBaseMessageId(event.sg_message_id);
+            try {
+                const sentRow = await EmailEventsDB.getByMessageId(message_id, req);
+                if (!sentRow) {
+                    Logger.warn(req, `SendGridWebhook: no sent row for message_id=${message_id}`);
+                    continue;
+                }
+
+                const { email, unique_args, sg_message_id, event: event_type, timestamp: event_ts, ...rest } = event;
+                await EmailEventsDB.insert({
+                    message_id,
+                    election_id: sentRow.election_id,
+                    voter_id: sentRow.voter_id,
+                    event_type: event_type!,
+                    event_timestamp: event_ts ?? Date.now(),
+                    details: Object.keys(rest).length > 0 ? rest : undefined,
+                }, req);
+            } catch (err: any) {
+                Logger.error(req, `SendGridWebhook: failed to store event for message_id=${message_id}: ${err.message}`);
+            }
+        }
+
+        res.status(200).send('OK');
+    } catch (err: any) {
+        Logger.error(req, `SendGridWebhook: unexpected error: ${err.message}`);
+        res.status(500).send('Internal server error');
+    }
 };
