@@ -16,6 +16,10 @@ export default class EmailEventsDB {
         return this._events.filter(e => e.election_id === election_id && e.voter_id === voter_id);
     }
 
+    async getByElectionId(election_id: string, ctx: ILoggingContext): Promise<EmailEvent[]> {
+        return this._events.filter(e => e.election_id === election_id);
+    }
+
     async getByMessageId(message_id: string, ctx: ILoggingContext): Promise<EmailEvent | null> {
         return this._events.find(e => e.message_id === message_id && e.event_type === 'sent') ?? null;
     }

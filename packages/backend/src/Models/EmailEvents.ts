@@ -33,6 +33,16 @@ export default class EmailEventsDB {
             .execute();
     }
 
+    async getByElectionId(election_id: string, ctx: ILoggingContext): Promise<EmailEvent[]> {
+        Logger.debug(ctx, `${tableName}.getByElectionId`);
+        return this._postgresClient
+            .selectFrom(tableName)
+            .where('election_id', '=', election_id)
+            .selectAll()
+            .orderBy('event_timestamp', 'asc')
+            .execute();
+    }
+
     async getByMessageId(message_id: string, ctx: ILoggingContext): Promise<EmailEvent | null> {
         Logger.debug(ctx, `${tableName}.getByMessageId`);
         const result = await this._postgresClient
