@@ -2,7 +2,6 @@ import { Response } from 'express';
 import crypto from 'crypto';
 import { IRequest } from '../IRequest';
 import Logger from '../Services/Logging/Logger';
-import { logSafeHash } from '../Services/Logging/logSafeHash';
 import ServiceLocator from '../ServiceLocator';
 
 interface SendGridEvent {
@@ -36,8 +35,7 @@ export const sendGridWebhookController = async (req: IRequest, res: Response) =>
         return;
     }
 
-    const redactedEvents = events.map(({ email, unique_args, ...rest }) => ({ ...rest, email: logSafeHash(email) }));
-    Logger.info(req, `SendGridWebhook events: ${JSON.stringify(redactedEvents)}`);
+    Logger.info(req, `SendGridWebhook: ${events.length} event(s)`);
 
     // This is a PUBLIC KEY from sendgrid.  I can't see any reason we should ever have to change it.
     // It is safe to have public in the repo.
@@ -61,21 +59,25 @@ export const sendGridWebhookController = async (req: IRequest, res: Response) =>
         if (!event.sg_message_id || !event.event) continue;
 
         const message_id = extractBaseMessageId(event.sg_message_id);
-        const sentRow = await EmailEventsDB.getByMessageId(message_id, req);
-        if (!sentRow) {
-            Logger.warn(req, `SendGridWebhook: no sent row for message_id=${message_id}`);
-            continue;
-        }
+        try {
+            const sentRow = await EmailEventsDB.getByMessageId(message_id, req);
+            if (!sentRow) {
+                Logger.warn(req, `SendGridWebhook: no sent row for message_id=${message_id}`);
+                continue;
+            }
 
-        const { email, unique_args, sg_message_id, event: event_type, timestamp: event_ts, ...rest } = event;
-        await EmailEventsDB.insert({
-            message_id,
-            election_id: sentRow.election_id,
-            voter_id: sentRow.voter_id,
-            event_type: event_type!,
-            event_timestamp: event_ts ?? Date.now(),
-            details: Object.keys(rest).length > 0 ? rest : undefined,
-        }, req);
+            const { email, unique_args, sg_message_id, event: event_type, timestamp: event_ts, ...rest } = event;
+            await EmailEventsDB.insert({
+                message_id,
+                election_id: sentRow.election_id,
+                voter_id: sentRow.voter_id,
+                event_type: event_type!,
+                event_timestamp: event_ts ?? Date.now(),
+                details: Object.keys(rest).length > 0 ? rest : undefined,
+            }, req);
+        } catch (err: any) {
+            Logger.error(req, `SendGridWebhook: failed to store event for message_id=${message_id}: ${err.message}`);
+        }
     }
 
     res.status(200).send('OK');
