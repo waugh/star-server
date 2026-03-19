@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { IRequest } from '../IRequest';
 import Logger from '../Services/Logging/Logger';
 import { logSafeHash } from '../Services/Logging/logSafeHash';
+import ServiceLocator from '../ServiceLocator';
 
 interface SendGridEvent {
     email?: string;
@@ -12,7 +13,14 @@ interface SendGridEvent {
     [key: string]: unknown;
 }
 
-export const sendGridWebhookController = (req: IRequest, res: Response) => {
+const EmailEventsDB = ServiceLocator.emailEventsDb();
+
+function extractBaseMessageId(sg_message_id: string): string {
+    const filterIdx = sg_message_id.indexOf('.filter');
+    return filterIdx >= 0 ? sg_message_id.substring(0, filterIdx) : sg_message_id;
+}
+
+export const sendGridWebhookController = async (req: IRequest, res: Response) => {
     const rawBody = req.body as Buffer;
     const signature = String(req.headers['x-twilio-email-event-webhook-signature'] ?? 'missing');
     const timestamp = String(req.headers['x-twilio-email-event-webhook-timestamp'] ?? 'missing');
@@ -46,6 +54,27 @@ export const sendGridWebhookController = (req: IRequest, res: Response) => {
         Logger.warn(req, `SendGridWebhook: invalid signature`);
         res.status(403).send('Invalid signature');
         return;
+    }
+
+    for (const event of events) {
+        if (!event.sg_message_id || !event.event) continue;
+
+        const message_id = extractBaseMessageId(event.sg_message_id);
+        const sentRow = await EmailEventsDB.getByMessageId(message_id, req);
+        if (!sentRow) {
+            Logger.warn(req, `SendGridWebhook: no sent row for message_id=${message_id}`);
+            continue;
+        }
+
+        const { email, unique_args, sg_message_id, event: event_type, timestamp: event_ts, ...rest } = event;
+        await EmailEventsDB.insert({
+            message_id,
+            election_id: sentRow.election_id,
+            voter_id: sentRow.voter_id,
+            event_type: event_type!,
+            event_timestamp: event_ts ?? Date.now(),
+            details: Object.keys(rest).length > 0 ? rest : undefined,
+        }, req);
     }
 
     res.status(200).send('OK');
