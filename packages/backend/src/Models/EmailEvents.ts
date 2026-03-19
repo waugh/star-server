@@ -35,11 +35,12 @@ export default class EmailEventsDB {
 
     async getByMessageId(message_id: string, ctx: ILoggingContext): Promise<EmailEvent | null> {
         Logger.debug(ctx, `${tableName}.getByMessageId`);
-        return this._postgresClient
+        const result = await this._postgresClient
             .selectFrom(tableName)
             .where('message_id', '=', message_id)
             .where('event_type', '=', 'sent')
             .selectAll()
-            .executeTakeFirst() ?? null;
+            .executeTakeFirst();
+        return result ?? null;
     }
 }
