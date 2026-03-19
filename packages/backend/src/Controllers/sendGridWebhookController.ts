@@ -21,10 +21,11 @@ function extractBaseMessageId(sg_message_id: string): string {
 }
 
 export const sendGridWebhookController = async (req: IRequest, res: Response) => {
-    const rawBody = req.body as Buffer;
     const signature = String(req.headers['x-twilio-email-event-webhook-signature'] ?? 'missing');
     const timestamp = String(req.headers['x-twilio-email-event-webhook-timestamp'] ?? 'missing');
     Logger.info(req, `SendGridWebhook signature=${signature} timestamp=${timestamp}`);
+
+    const rawBody = req.body as Buffer;
 
     let events: SendGridEvent[];
     try {
