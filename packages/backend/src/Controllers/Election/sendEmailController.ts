@@ -204,6 +204,9 @@ async function handleSendEmailEvent(job: { id: string; data: email_request_event
     }
 
     // Record the sent event in the email events table
+    if (emailResponse?.length > 1) {
+        Logger.warn(ctx, `sendEmail got ${emailResponse.length} responses but only tracks the first — email event tracking needs updating for batch sends`);
+    }
     const xMessageId = emailResponse?.[0]?.[0]?.headers?.['x-message-id'];
     if (xMessageId && !event.test_email) {
         try {
@@ -212,7 +215,7 @@ async function handleSendEmailEvent(job: { id: string; data: email_request_event
                 election_id: election.election_id,
                 voter_id: event.voter_id,
                 event_type: 'sent',
-                event_timestamp: Date.now(),
+                event_timestamp: new Date().toISOString(),
                 details: { status_code: emailResponse?.[0]?.[0]?.statusCode },
             }, ctx);
         } catch (err: any) {

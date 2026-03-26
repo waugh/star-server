@@ -73,7 +73,7 @@ export const sendGridWebhookController = async (req: IRequest, res: Response) =>
                     election_id: sentRow.election_id,
                     voter_id: sentRow.voter_id,
                     event_type: event_type!,
-                    event_timestamp: event_ts ?? Date.now(),
+                    event_timestamp: new Date((event_ts ?? Date.now() / 1000) * 1000).toISOString(),
                     details: Object.keys(rest).length > 0 ? rest : undefined,
                 }, req);
             } catch (err: any) {

@@ -6,6 +6,6 @@ export interface EmailEvent {
     election_id: Uid;
     voter_id: Uid;
     event_type: string;
-    event_timestamp: number;
+    event_timestamp: string;
     details?: Record<string, unknown>;
 }

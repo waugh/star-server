@@ -120,7 +120,7 @@ const getRollsByElectionID = async (req: IElectionRequest, res: Response, next: 
     }
 
     // Fetch email events for this election (best-effort, don't fail if table doesn't exist)
-    let emailEventsByVoter: Record<string, { event_type: string; event_timestamp: number; details?: Record<string, unknown> }[]> = {};
+    let emailEventsByVoter: Record<string, { event_type: string; event_timestamp: string; details?: Record<string, unknown> }[]> = {};
     try {
         const allEvents = await EmailEventsModel.getByElectionId(electionId, req);
         for (const event of allEvents) {

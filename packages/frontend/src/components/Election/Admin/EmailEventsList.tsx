@@ -4,7 +4,7 @@ import useElection from "../../ElectionContextProvider";
 
 type EmailEventData = {
     event_type: string;
-    event_timestamp: number;
+    event_timestamp: string;
     details?: Record<string, unknown>;
 };
 
@@ -63,7 +63,7 @@ const EmailEventsList = ({ events }: Props) => {
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    {t('listed_datetime', { listed_datetime: new Date(Number(event.event_timestamp)) })}
+                                    {t('listed_datetime', { listed_datetime: new Date(event.event_timestamp) })}
                                 </TableCell>
                                 <TableCell>
                                     {event.details?.reason && String(event.details.reason)}

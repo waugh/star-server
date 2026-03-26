@@ -65,7 +65,7 @@ describe("SendGrid Webhook", () => {
             election_id: "election1",
             voter_id: "voter1",
             event_type: "sent",
-            event_timestamp: 999,
+            event_timestamp: new Date(999000).toISOString(),
         });
         emailEventsDb._nextId = 2;
 
@@ -89,7 +89,7 @@ describe("SendGrid Webhook", () => {
         expect(inserted.election_id).toBe("election1");
         expect(inserted.voter_id).toBe("voter1");
         expect(inserted.event_type).toBe("delivered");
-        expect(inserted.event_timestamp).toBe(1000);
+        expect(inserted.event_timestamp).toBe(new Date(1000 * 1000).toISOString());
         // email should NOT be in details (PII)
         expect((inserted.details as any)?.email).toBeUndefined();
         // response should be in details
@@ -118,7 +118,7 @@ describe("SendGrid Webhook", () => {
             election_id: "election1",
             voter_id: "voter1",
             event_type: "sent",
-            event_timestamp: 999,
+            event_timestamp: new Date(999000).toISOString(),
         });
         emailEventsDb._nextId = 2;
 
@@ -144,7 +144,7 @@ describe("SendGrid Webhook", () => {
             election_id: "elec1",
             voter_id: "v1",
             event_type: "sent",
-            event_timestamp: 999,
+            event_timestamp: new Date(999000).toISOString(),
         });
         emailEventsDb._nextId = 2;
 

@@ -102,48 +102,50 @@ function makeEmailEvents(): Omit<EmailEvent, 'id'>[] {
     const baseTime = Date.now() - 3600000; // 1 hour ago
     const events: Omit<EmailEvent, 'id'>[] = [];
 
+    const ts = (offset: number) => new Date(baseTime + offset).toISOString();
+
     // Alice: sent → processed → delivered (happy path)
     events.push(
-        { message_id: 'msg-alice-invite', election_id: ELECTION_ID, voter_id: 'v-email-alice', event_type: 'sent', event_timestamp: baseTime, details: { status_code: 202 } },
-        { message_id: 'msg-alice-invite', election_id: ELECTION_ID, voter_id: 'v-email-alice', event_type: 'processed', event_timestamp: baseTime + 1000 },
-        { message_id: 'msg-alice-invite', election_id: ELECTION_ID, voter_id: 'v-email-alice', event_type: 'delivered', event_timestamp: baseTime + 3000, details: { response: '250 OK' } },
+        { message_id: 'msg-alice-invite', election_id: ELECTION_ID, voter_id: 'v-email-alice', event_type: 'sent', event_timestamp: ts(0), details: { status_code: 202 } },
+        { message_id: 'msg-alice-invite', election_id: ELECTION_ID, voter_id: 'v-email-alice', event_type: 'processed', event_timestamp: ts(1000) },
+        { message_id: 'msg-alice-invite', election_id: ELECTION_ID, voter_id: 'v-email-alice', event_type: 'delivered', event_timestamp: ts(3000), details: { response: '250 OK' } },
     );
 
     // Bob: sent → processed → delivered → opened (engaged)
     events.push(
-        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'sent', event_timestamp: baseTime, details: { status_code: 202 } },
-        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'processed', event_timestamp: baseTime + 1000 },
-        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'delivered', event_timestamp: baseTime + 2000, details: { response: '250 OK' } },
-        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'open', event_timestamp: baseTime + 60000 },
+        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'sent', event_timestamp: ts(0), details: { status_code: 202 } },
+        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'processed', event_timestamp: ts(1000) },
+        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'delivered', event_timestamp: ts(2000), details: { response: '250 OK' } },
+        { message_id: 'msg-bob-invite', election_id: ELECTION_ID, voter_id: 'v-email-bob', event_type: 'open', event_timestamp: ts(60000) },
     );
 
     // Carol: sent → processed → bounced (bad address)
     events.push(
-        { message_id: 'msg-carol-invite', election_id: ELECTION_ID, voter_id: 'v-email-carol', event_type: 'sent', event_timestamp: baseTime, details: { status_code: 202 } },
-        { message_id: 'msg-carol-invite', election_id: ELECTION_ID, voter_id: 'v-email-carol', event_type: 'processed', event_timestamp: baseTime + 1000 },
-        { message_id: 'msg-carol-invite', election_id: ELECTION_ID, voter_id: 'v-email-carol', event_type: 'bounce', event_timestamp: baseTime + 2000, details: { reason: '550 No such user', status: '5.1.1', bounce_classification: 'Invalid' } },
+        { message_id: 'msg-carol-invite', election_id: ELECTION_ID, voter_id: 'v-email-carol', event_type: 'sent', event_timestamp: ts(0), details: { status_code: 202 } },
+        { message_id: 'msg-carol-invite', election_id: ELECTION_ID, voter_id: 'v-email-carol', event_type: 'processed', event_timestamp: ts(1000) },
+        { message_id: 'msg-carol-invite', election_id: ELECTION_ID, voter_id: 'v-email-carol', event_type: 'bounce', event_timestamp: ts(2000), details: { reason: '550 No such user', status: '5.1.1', bounce_classification: 'Invalid' } },
     );
 
     // Dave: sent → processed → deferred (still trying)
     events.push(
-        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'sent', event_timestamp: baseTime, details: { status_code: 202 } },
-        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'processed', event_timestamp: baseTime + 1000 },
-        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'deferred', event_timestamp: baseTime + 2000, details: { reason: '421 Try again later', attempt: '1' } },
-        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'deferred', event_timestamp: baseTime + 120000, details: { reason: '421 Try again later', attempt: '2' } },
+        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'sent', event_timestamp: ts(0), details: { status_code: 202 } },
+        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'processed', event_timestamp: ts(1000) },
+        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'deferred', event_timestamp: ts(2000), details: { reason: '421 Try again later', attempt: '1' } },
+        { message_id: 'msg-dave-invite', election_id: ELECTION_ID, voter_id: 'v-email-dave', event_type: 'deferred', event_timestamp: ts(120000), details: { reason: '421 Try again later', attempt: '2' } },
     );
 
     // Eve: sent → processed → dropped (previously bounced)
     events.push(
-        { message_id: 'msg-eve-invite', election_id: ELECTION_ID, voter_id: 'v-email-eve', event_type: 'sent', event_timestamp: baseTime, details: { status_code: 202 } },
-        { message_id: 'msg-eve-invite', election_id: ELECTION_ID, voter_id: 'v-email-eve', event_type: 'dropped', event_timestamp: baseTime + 1000, details: { reason: 'Bounced Address', status: '5.0.0' } },
+        { message_id: 'msg-eve-invite', election_id: ELECTION_ID, voter_id: 'v-email-eve', event_type: 'sent', event_timestamp: ts(0), details: { status_code: 202 } },
+        { message_id: 'msg-eve-invite', election_id: ELECTION_ID, voter_id: 'v-email-eve', event_type: 'dropped', event_timestamp: ts(1000), details: { reason: 'Bounced Address', status: '5.0.0' } },
     );
 
     // Frank: sent → processed → delivered → spam_report (uh oh)
     events.push(
-        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'sent', event_timestamp: baseTime, details: { status_code: 202 } },
-        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'processed', event_timestamp: baseTime + 1000 },
-        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'delivered', event_timestamp: baseTime + 2000, details: { response: '250 OK' } },
-        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'spamreport', event_timestamp: baseTime + 300000 },
+        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'sent', event_timestamp: ts(0), details: { status_code: 202 } },
+        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'processed', event_timestamp: ts(1000) },
+        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'delivered', event_timestamp: ts(2000), details: { response: '250 OK' } },
+        { message_id: 'msg-frank-invite', election_id: ELECTION_ID, voter_id: 'v-email-frank', event_type: 'spamreport', event_timestamp: ts(300000) },
     );
 
     return events;

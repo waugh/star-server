@@ -25,7 +25,7 @@ export interface ElectionRoll {
 
 // API response type — extends the domain model with computed fields attached at response time
 export interface ElectionRollResponse extends ElectionRoll {
-    email_events?: { event_type: string; event_timestamp: number; details?: Record<string, unknown> }[];
+    email_events?: { event_type: string; event_timestamp: string; details?: Record<string, unknown> }[];
 }
 
 export interface ElectionRollAction {

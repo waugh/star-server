@@ -8,7 +8,7 @@ export async function up(db: Kysely<any>): Promise<void> {
         .addColumn('election_id', 'varchar', (col) => col.notNull())
         .addColumn('voter_id', 'varchar', (col) => col.notNull())
         .addColumn('event_type', 'varchar', (col) => col.notNull())
-        .addColumn('event_timestamp', 'bigint', (col) => col.notNull())
+        .addColumn('event_timestamp', 'timestamptz', (col) => col.notNull())
         .addColumn('details', 'json')
         .execute()
 
