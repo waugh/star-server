@@ -148,7 +148,7 @@ async function sendInvitation(ctx: any, election:Election, electionRoll: Electio
         electionRoll.email_data.inviteResponse = emailResponse
     }
     // Record the sent event in the email events table
-    const xMessageId = emailResponse?.[0]?.headers?.['x-message-id'];
+    const xMessageId = emailResponse?.[0]?.[0]?.headers?.['x-message-id'];
     if (xMessageId) {
         try {
             await EmailEventsDB.insert({
@@ -157,7 +157,7 @@ async function sendInvitation(ctx: any, election:Election, electionRoll: Electio
                 voter_id: electionRoll.voter_id,
                 event_type: 'sent',
                 event_timestamp: new Date().toISOString(),
-                details: { status_code: emailResponse?.[0]?.statusCode },
+                details: { status_code: emailResponse?.[0]?.[0]?.statusCode },
             }, ctx);
         } catch (err: any) {
             Logger.error(ctx, `Could not insert email event: ${err.message}`);
