@@ -56,6 +56,13 @@ export const sendGridWebhookController = async (req: IRequest, res: Response) =>
             return;
         }
 
+        const timestampAge = Math.abs(Date.now() / 1000 - Number(timestamp));
+        if (isNaN(timestampAge) || timestampAge > 300) {
+            Logger.warn(req, `SendGridWebhook: timestamp too old or invalid (age=${timestampAge}s)`);
+            res.status(403).send('Invalid timestamp');
+            return;
+        }
+
         for (const event of events) {
             if (!event.sg_message_id || !event.event) continue;
 
@@ -63,7 +70,7 @@ export const sendGridWebhookController = async (req: IRequest, res: Response) =>
             try {
                 const sentRow = await EmailEventsDB.getByMessageId(message_id, req);
                 if (!sentRow) {
-                    Logger.warn(req, `SendGridWebhook: no sent row for message_id=${message_id}`);
+                    Logger.warn(req, `SendGridWebhook: no sent row for message_id=${message_id} (raw sg_message_id=${event.sg_message_id})`);
                     continue;
                 }
 

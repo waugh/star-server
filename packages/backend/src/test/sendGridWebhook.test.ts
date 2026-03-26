@@ -42,6 +42,10 @@ afterEach(() => {
     emailEventsDb._nextId = 1;
 });
 
+afterAll(() => {
+    jest.restoreAllMocks();
+});
+
 describe("SendGrid Webhook", () => {
 
     test("rejects invalid signature with 403", async () => {
@@ -50,9 +54,17 @@ describe("SendGrid Webhook", () => {
         expect(res.statusCode).toBe(403);
     });
 
+    test("rejects stale timestamp with 403", async () => {
+        const body = JSON.stringify([{ event: "delivered", sg_message_id: "abc123", timestamp: 1000 }]);
+        const timestamp = "12345"; // old timestamp
+        const signature = signPayload(timestamp, body);
+        const res = await webhookPost(app, body, timestamp, signature);
+        expect(res.statusCode).toBe(403);
+    });
+
     test("accepts valid signature with 200", async () => {
         const body = JSON.stringify([{ event: "delivered", sg_message_id: "abc123", timestamp: 1000 }]);
-        const timestamp = "12345";
+        const timestamp = String(Math.floor(Date.now() / 1000));
         const signature = signPayload(timestamp, body);
         const res = await webhookPost(app, body, timestamp, signature);
         expect(res.statusCode).toBe(200);
@@ -77,7 +89,7 @@ describe("SendGrid Webhook", () => {
             email: "voter@example.com",
         }];
         const body = JSON.stringify(events);
-        const timestamp = "12345";
+        const timestamp = String(Math.floor(Date.now() / 1000));
         const signature = signPayload(timestamp, body);
         const res = await webhookPost(app, body, timestamp, signature);
 
@@ -103,7 +115,7 @@ describe("SendGrid Webhook", () => {
             timestamp: 1000,
         }];
         const body = JSON.stringify(events);
-        const timestamp = "12345";
+        const timestamp = String(Math.floor(Date.now() / 1000));
         const signature = signPayload(timestamp, body);
         const res = await webhookPost(app, body, timestamp, signature);
 
@@ -127,7 +139,7 @@ describe("SendGrid Webhook", () => {
             { event: "delivered", sg_message_id: "msg1.filter001.abc", timestamp: 1001 },
         ];
         const body = JSON.stringify(events);
-        const timestamp = "12345";
+        const timestamp = String(Math.floor(Date.now() / 1000));
         const signature = signPayload(timestamp, body);
         const res = await webhookPost(app, body, timestamp, signature);
 
@@ -154,7 +166,7 @@ describe("SendGrid Webhook", () => {
             timestamp: 2000,
         }];
         const body = JSON.stringify(events);
-        const timestamp = "99999";
+        const timestamp = String(Math.floor(Date.now() / 1000));
         const signature = signPayload(timestamp, body);
         const res = await webhookPost(app, body, timestamp, signature);
 
