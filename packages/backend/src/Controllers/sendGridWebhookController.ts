@@ -48,7 +48,7 @@ export const sendGridWebhookController = async (req: IRequest, res: Response) =>
             type: 'spki',
         });
         const payload = timestamp + rawBody.toString('utf8');
-        const valid = crypto.verify(null, Buffer.from(payload), publicKey, Buffer.from(signature, 'base64'));
+        const valid = crypto.verify('SHA256', Buffer.from(payload), publicKey, Buffer.from(signature, 'base64'));
 
         if (!valid) {
             Logger.warn(req, `SendGridWebhook: invalid signature`);
