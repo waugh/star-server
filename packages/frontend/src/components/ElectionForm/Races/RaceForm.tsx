@@ -266,7 +266,11 @@ const InnerRaceForm = ({setErrors, errors, editedRace, applyRaceUpdate, open=tru
 
             <Box sx={{
                 position: 'relative',
-                height: candidatesExpaneded? `${candidateItems.length*66 - 11 + 40*(maxSpecialCandidates-numSpecialCandidates)}px` : 0,
+                height: candidatesExpaneded? `${
+                    candidateItems.length*66 - 11 +
+                    40*(maxSpecialCandidates-numSpecialCandidates) +
+                    58 // hard coded value for write-ins checkbox
+                }px` : 0,
                 transition: 'height 0.5s',
             }}>
                 <TransitionBox absolute enabled={candidatesExpaneded}>
@@ -301,23 +305,24 @@ const InnerRaceForm = ({setErrors, errors, editedRace, applyRaceUpdate, open=tru
                             }}>Add "None of the Above"</LinkButton>
                             <Tip name='nota'/>
                         </Box>}
+                        <FormControlLabel
+                            disabled={isDisabled}
+                            control={
+                                <Checkbox
+                                    id="enable-write-in"
+                                    checked={!!editedRace.enable_write_in}
+                                    onChange={(e) => applyRaceUpdate(race => { race.enable_write_in = e.target.checked; })}
+                                />
+                            }
+                            label="Allow write-ins"
+                            sx={{ pl: 1  }}
+                        />
                     </Stack>
                 </TransitionBox>
                 
             </Box>
 
-            <FormControlLabel
-                disabled={isDisabled}
-                control={
-                    <Checkbox
-                        id="enable-write-in"
-                        checked={!!editedRace.enable_write_in}
-                        onChange={(e) => applyRaceUpdate(race => { race.enable_write_in = e.target.checked; })}
-                    />
-                }
-                label="Allow write-ins"
-                sx={{ pl: 1 }}
-            />
+            
         </FileDropBox>
     </Box>
 }
