@@ -24,6 +24,7 @@ import {
     sendEmailsController,
     queryElections,
     claimElection,
+    setWriteInResults,
 } from '../Controllers/Election';
 import {upload, uploadImageController} from '../Controllers/uploadImageController';
 import asyncHandler from 'express-async-handler';
@@ -724,6 +725,67 @@ electionsRouter.post('/Election/:id/sendInvite/:voter_id', asyncHandler(sendInvi
  *                     - null
  */
 electionsRouter.post('/images',upload.single("file"), asyncHandler(uploadImageController))
+
+/**
+ * @swagger
+ * /Election/{id}/setWriteInResults:
+ *   post:
+ *     summary: Set write-in candidate approvals for a race
+ *     tags: [Elections]
+ *     security:
+ *      - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The election ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *        application/json:
+ *          schema:
+ *           type: object
+ *           properties:
+ *            write_in_results:
+ *              type: object
+ *              properties:
+ *                race_id:
+ *                  type: string
+ *                write_in_candidates:
+ *                  type: array
+ *                  maxItems: 100
+ *                  items:
+ *                    type: object
+ *                    properties:
+ *                      candidate_name:
+ *                        type: string
+ *                        maxLength: 100
+ *                      approved:
+ *                        type: boolean
+ *                      aliases:
+ *                        type: array
+ *                        maxItems: 20
+ *                        items:
+ *                          type: string
+ *                          maxLength: 100
+ *     responses:
+ *       200:
+ *         description: Updated election
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 election:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Election'
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Election not found */
+electionsRouter.post('/Election/:id/setWriteInResults',asyncHandler(setWriteInResults))
 
 
 electionsRouter.param('id', asyncHandler(getElectionByID))

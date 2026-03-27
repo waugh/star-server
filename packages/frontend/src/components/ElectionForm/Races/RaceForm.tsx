@@ -2,7 +2,7 @@ import React, { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useS
 import CandidateForm from "../Candidates/CandidateForm";
 import TextField from "@mui/material/TextField";
 import Typography from '@mui/material/Typography';
-import { Box, Button, FormHelperText, Link, Stack } from "@mui/material";
+import { Box, Button, Checkbox, FormControlLabel, FormHelperText, Link, Stack } from "@mui/material";
 import { AddIcon, MinusIcon, TransitionBox, useSubstitutedTranslation } from '../../util';
 import useConfirm from '../../ConfirmationDialogProvider';
 import useFeatureFlags from '../../FeatureFlagContextProvider';
@@ -188,10 +188,9 @@ const InnerRaceForm = ({setErrors, errors, editedRace, applyRaceUpdate, open=tru
 
     const candidateItems = election.state === 'draft' ? ephemeralCandidates : editedRace.candidates;
 
-    // special candidates are "none of the above", and in the future this will also include write in
-    // these candidates are listed below the new candidate in the ephemeral list
+    // NOTA is listed below the new candidate in the ephemeral list
     const maxSpecialCandidates = 1;
-    const numSpecialCandidates = editedRace.candidates.filter((c) => c.candidate_id === NOTA_ID).length; 
+    const numSpecialCandidates = editedRace.candidates.filter(c => c.candidate_id === NOTA_ID).length;
     const newCandidateIndex = election.state === 'draft' ? ephemeralCandidates.length - 1 - numSpecialCandidates : undefined;
 
     const uiIndexToActualIndex = (uiIndex) => {
@@ -267,7 +266,11 @@ const InnerRaceForm = ({setErrors, errors, editedRace, applyRaceUpdate, open=tru
 
             <Box sx={{
                 position: 'relative',
-                height: candidatesExpaneded? `${candidateItems.length*66 - 11 + 40*(maxSpecialCandidates-numSpecialCandidates)}px` : 0,
+                height: candidatesExpaneded? `${
+                    candidateItems.length*66 - 11 +
+                    40*(maxSpecialCandidates-numSpecialCandidates) +
+                    58 // hard coded value for write-ins checkbox
+                }px` : 0,
                 transition: 'height 0.5s',
             }}>
                 <TransitionBox absolute enabled={candidatesExpaneded}>
@@ -302,10 +305,24 @@ const InnerRaceForm = ({setErrors, errors, editedRace, applyRaceUpdate, open=tru
                             }}>Add "None of the Above"</LinkButton>
                             <Tip name='nota'/>
                         </Box>}
+                        <FormControlLabel
+                            disabled={isDisabled}
+                            control={
+                                <Checkbox
+                                    id="enable-write-in"
+                                    checked={!!editedRace.enable_write_in}
+                                    onChange={(e) => applyRaceUpdate(race => { race.enable_write_in = e.target.checked; })}
+                                />
+                            }
+                            label="Allow write-ins"
+                            sx={{ pl: 1  }}
+                        />
                     </Stack>
                 </TransitionBox>
                 
             </Box>
+
+            
         </FileDropBox>
     </Box>
 }

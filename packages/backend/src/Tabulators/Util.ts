@@ -105,7 +105,7 @@ export const makeAbstentionTest = (markAllEqualAsAbstention:boolean = false) => 
 
 type StatTestPair = Readonly<[string, (vote: rawVote) => boolean]>;
 
-const filterInitialVotes = (rawVotes: rawVote[], tests: StatTestPair[]): [vote[], {[key: string]: number}] => {
+const filterInitialVotes = (rawVotes: rawVote[], candidateIds: string[], tests: StatTestPair[]): [vote[], {[key: string]: number}] => {
 	let tallyVotes: vote[] = [];
 	let summaryStats: {[key: string]: number} = {};
 
@@ -117,7 +117,7 @@ const filterInitialVotes = (rawVotes: rawVote[], tests: StatTestPair[]): [vote[]
   rawVotes.forEach(rawVote => {
     // using a classic loop so that I can return out of it
     for(let i = 0; i < tests.length; i++){
-      let [statName, statTest] = tests[i]; 
+      let [statName, statTest] = tests[i];
       if(statTest(rawVote)){
         summaryStats[statName] = (summaryStats[statName] ?? 0)+1;
         return;
@@ -126,7 +126,7 @@ const filterInitialVotes = (rawVotes: rawVote[], tests: StatTestPair[]): [vote[]
     summaryStats.nTallyVotes++;
     tallyVotes.push({
       ...rawVote,
-      marks: Object.fromEntries(Object.entries(rawVote.marks).map(([c, v]) => [c, v ?? 0]))
+      marks: Object.fromEntries(candidateIds.map(id => [id, rawVote.marks[id] ?? 0]))
     })
   })
 
@@ -227,7 +227,7 @@ export const getSummaryData = <CandidateType extends candidate, SummaryType exte
   statTests: StatTestPair[],
 ): {tallyVotes: vote[], summaryData: SummaryType} => {
 	// Filter Ballots
-	const [tallyVotes, summaryStats] = filterInitialVotes(allVotes, statTests);
+	const [tallyVotes, summaryStats] = filterInitialVotes(allVotes, candidates.map(c => c.id), statTests);
 
   // Matrix for voter preferences
   const remapZero = (n:number) => n == 0 ? Infinity : n;

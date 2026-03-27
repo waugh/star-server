@@ -32,7 +32,7 @@ export type ElectionResults =
     starResults |
     allocatedScoreResults |
     approvalResults |
-    rankedRobinResults | 
+    rankedRobinResults |
     irvResults |
     pluralityResults;
 
@@ -79,6 +79,10 @@ export interface genericResults<CandidateType extends candidate, SummaryType ext
     roundResults: roundResults<CandidateType>[],
     summaryData: SummaryType,
     tieBreakType: tieBreakType,
+    writeInDiagnostics?: {
+        numScoresDisregardedForUnprocessed: number,
+        numScoresDisregarded: number,
+    },
 }
 
 /////////////// STAR TYPES //////////////////
