@@ -61,9 +61,6 @@ const App = () => {
         <Box display='flex' flexDirection='column' minHeight={'100vh'} sx={{backgroundColor:'white'}} onDragOver={(e) => e.preventDefault()} onDrop={(e) => e.preventDefault()} >
           <ReturnToClassicLayer/>
           <Header />
-          <Typography sx={{textAlign:'center', padding: 2, opacity: 0.5}}>
-            {t('nav.beta_warning')}
-          </Typography>
           <Box
             sx={{
               width: '100%',
