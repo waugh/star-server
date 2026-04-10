@@ -832,7 +832,7 @@ tips:
 draft_warning:
   title: Test Mode
   description: >
-    DO NOT SHARE PUBLICLY! This {{election}} is still being drafted.
+    This {{election}} is still being drafted.
     All ballots will be counted as test votes and
     shall be reset prior to the final {{election}}.
 
