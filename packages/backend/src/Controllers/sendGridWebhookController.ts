@@ -57,7 +57,7 @@ export const sendGridWebhookController = async (req: IRequest, res: Response) =>
         }
 
         const timestampAge = Math.abs(Date.now() / 1000 - Number(timestamp));
-        if (isNaN(timestampAge) || timestampAge > 300) {
+        if (isNaN(timestampAge) || timestampAge > 86400) {
             Logger.warn(req, `SendGridWebhook: timestamp too old or invalid (age=${timestampAge}s)`);
             res.status(403).send('Invalid timestamp');
             return;
